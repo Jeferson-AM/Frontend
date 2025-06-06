@@ -30,6 +30,10 @@ class UserProfile extends HTMLElement {
             }
         } catch {}
 
+        // SVG avatar por defecto codificado en base64 (azul, sencillo)
+        const defaultAvatar = "data:image/svg+xml;base64," +
+            btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="55" r="55" fill="#bbdefb"/><circle cx="55" cy="45" r="25" fill="#7197bb"/><ellipse cx="55" cy="85" rx="35" ry="18" fill="#7197bb"/></svg>`);
+
         // Renderizado
         this.innerHTML = `
         <div class="container" style="max-width:500px;margin:50px auto 0 auto;">
@@ -38,9 +42,10 @@ class UserProfile extends HTMLElement {
                     <img id="profile-pic"
                         src="${user && user.photo && user.photo.length > 30
                             ? `data:image/png;base64,${user.photo}`
-                            : 'default-profile.png'}"
+                            : defaultAvatar}"
                         alt="Foto de perfil"
-                        style="width:110px;height:110px;border-radius:50%;border:4px solid #1565c0;background:#fff;margin-bottom:18px;object-fit:cover;">
+                        style="width:110px;height:110px;border-radius:50%;border:4px solid #1565c0;background:#fff;margin-bottom:18px;object-fit:cover;"
+                        onerror="this.onerror=null;this.src='${defaultAvatar}';">
                     <h4 class="white-text" style="margin-bottom:10px;">${user ? user.username : 'Usuario no encontrado'}</h4>
                     <p class="grey-text text-lighten-2" style="min-height:30px;">${user && user.bio ? user.bio : ''}</p>
                 </div>
