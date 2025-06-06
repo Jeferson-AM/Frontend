@@ -68,7 +68,8 @@ class ImageGallery extends HTMLElement {
                     <div class="card-image" style="border-radius: 20px 20px 0 0; overflow: hidden; position:relative;">
                         <img class="materialboxed" src="data:image/jpg;base64,${img.filedata}" alt="${img.filename}" style="border-radius: 20px 20px 0 0; width:100%; height:250px; object-fit:cover;">
                         <a class='btn-floating halfway-fab waves-effect waves-light blue like-btn' data-imageid='${img.id}' style="position:absolute;right:20px;bottom:20px;">
-                            <i class='material-icons'>favorite_border</i>
+                            <i class='material-icons heart' id='heart-${img.id}'>favorite_border</i>
+                            <span class="like-count" id="like-count-${img.id}" style="color:white; margin-left:10px; font-weight:bold; font-size:1rem;"></span>
                         </a>
                     </div>
                     <div class="card-content" style="border-radius: 0 0 20px 20px;">
@@ -86,6 +87,14 @@ class ImageGallery extends HTMLElement {
                 </div>
             `;
             container.appendChild(card);
+
+            // Cargar likes al renderizar la card
+            fetch(`http://localhost:5000/api/images/${img.id}/likes`)
+                .then(r => r.json())
+                .then(data => {
+                    const likeCountEl = document.getElementById(`like-count-${img.id}`);
+                    if (likeCountEl) likeCountEl.textContent = data.count || 0;
+                });
         });
 
         if (window.M && M.Materialbox) {
@@ -142,6 +151,37 @@ class ImageGallery extends HTMLElement {
                 e.preventDefault();
                 const userId = link.getAttribute('data-userid');
                 window.location.href = `/frontend/profile.html?user_id=${userId}`;
+            });
+        });
+
+        // EVENT LISTENER para dar like
+        container.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const imageId = btn.getAttribute('data-imageid');
+                const heartIcon = btn.querySelector('.heart');
+                const likeCountEl = document.getElementById(`like-count-${imageId}`);
+                const userId = Number(localStorage.getItem("user_id"));
+
+                // Enviar like al backend con user_id
+                const res = await fetch(`http://localhost:5000/api/images/${imageId}/likes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId }),
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (likeCountEl) likeCountEl.textContent = data.count || 0;
+                    heartIcon.textContent = 'favorite';
+                    heartIcon.classList.add('liked-animate');
+                    setTimeout(() => {
+                        heartIcon.classList.remove('liked-animate');
+                    }, 600);
+                } else {
+                    const errMsg = await res.text();
+                    alert("Error al dar like: " + errMsg);
+                }
             });
         });
     }
