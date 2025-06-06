@@ -18,7 +18,6 @@ class Navbar extends HTMLElement {
         </nav>
         `;
 
-        // El único handler de logout
         this.querySelector('#btn-logout')?.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem("user_id");
